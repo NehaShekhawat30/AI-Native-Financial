@@ -168,7 +168,7 @@ python manage.py test finance -v 2
 4. Add the following **Environment Variables**:
    - `SECRET_KEY`: `<generated-secret-key>`
    - `DEBUG`: `False`
-   - `ALLOWED_HOSTS`: `*.onrender.com`
+   - `ALLOWED_HOSTS`: `.onrender.com` (or omit, as `settings.py` auto-detects Render)
    - `CSRF_TRUSTED_ORIGINS`: `https://*.onrender.com`
    - `GEMINI_API_KEY`: `<your-gemini-api-key>`
    - `DATABASE_URL`: *(Optional: paste Render PostgreSQL Internal Connection String, or omit to run on SQLite)*

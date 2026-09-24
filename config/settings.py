@@ -25,12 +25,37 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-finzcard-secret-key-local-dev')
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 
-# Allowed hosts
+# Allowed hosts configuration
+# Note: In Django, subdomain wildcards must start with a dot (e.g., '.onrender.com'), not '*.'
 allowed_hosts_env = os.getenv('ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = []
+
 if allowed_hosts_env:
-    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
+    for host in allowed_hosts_env.split(','):
+        h = host.strip()
+        if not h:
+            continue
+        ALLOWED_HOSTS.append(h)
+        # Automatically normalize glob wildcards like '*.onrender.com' to Django's required '.onrender.com'
+        if h.startswith('*.'):
+            ALLOWED_HOSTS.append('.' + h[2:])
+            ALLOWED_HOSTS.append(h[2:])
 else:
-    ALLOWED_HOSTS = ['*']
+    # Default to permissive hosts for development & common cloud providers
+    ALLOWED_HOSTS = ['*', '.onrender.com', '.railway.app', 'localhost', '127.0.0.1', '[::1]']
+
+# Render auto-provides RENDER_EXTERNAL_HOSTNAME (e.g., myapp.onrender.com)
+render_external_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if render_external_hostname and render_external_hostname not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_external_hostname)
+
+# Always ensure .onrender.com and localhost are allowed if not matching wildcard
+if '.onrender.com' not in ALLOWED_HOSTS and '*' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('.onrender.com')
+
+# Reverse Proxy SSL Configuration for Render / Railway / reverse proxies
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 # CSRF Trusted Origins for Render / Railway / local testing
 csrf_origins_env = os.getenv('CSRF_TRUSTED_ORIGINS', '')
@@ -46,6 +71,11 @@ else:
         'http://localhost:8000',
         'http://127.0.0.1:8000',
     ]
+
+if render_external_hostname:
+    render_origin = f"https://{render_external_hostname}"
+    if render_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(render_origin)
 
 # Application definition
 INSTALLED_APPS = [
