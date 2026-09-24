@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Financial Analyst | Chat</title>
+    <!-- Marked.js for clean markdown rendering of assistant responses -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --primary: #38bdf8;
+            --primary-hover: #0ea5e9;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --ai-bubble: #1e293b;
+            --user-bubble: #0369a1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 2rem;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.15rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: all 0.15s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        /* Preset Question Chips */
+        .preset-container {
+            margin: 0.75rem 0;
+            flex-shrink: 0;
+        }
+
+        .preset-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+        }
+
+        .preset-chips {
+            display: flex;
+            gap: 0.4rem;
+            overflow-x: auto;
+            padding-bottom: 0.4rem;
+            scrollbar-width: thin;
+        }
+
+        .preset-chip {
+            background-color: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--border);
+            color: #cbd5e1;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .preset-chip:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background-color: rgba(56, 189, 248, 0.1);
+        }
+
+        /* Chat Message Window */
+        .chat-window {
+            flex: 1;
+            background-color: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .message-row {
+            display: flex;
+            gap: 0.75rem;
+            max-width: 85%;
+        }
+
+        .message-row.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-row.assistant {
+            align-self: flex-start;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .avatar.user-av {
+            background-color: #0284c7;
+            color: white;
+        }
+
+        .avatar.ai-av {
+            background: linear-gradient(135deg, #0ea5e9, #a855f7);
+            color: white;
+        }
+
+        .message-content {
+            background-color: var(--ai-bubble);
+            border: 1px solid var(--border);
+            padding: 0.85rem 1.15rem;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            line-height: 1.5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-row.user .message-content {
+            background-color: var(--user-bubble);
+            border-color: #0284c7;
+            color: white;
+            border-radius: 12px 2px 12px 12px;
+        }
+
+        .message-row.assistant .message-content {
+            border-radius: 2px 12px 12px 12px;
+        }
+
+        .tool-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: var(--primary);
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            margin-bottom: 0.6rem;
+        }
+
+        .message-content a {
+            color: var(--primary);
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+        .message-content ul, .message-content ol {
+            margin-left: 1.25rem;
+            margin-top: 0.4rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .message-content p {
+            margin-bottom: 0.5rem;
+        }
+
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Input Form */
+        .chat-input-area {
+            display: flex;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .input-box {
+            flex: 1;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.85rem 1.15rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        .input-box:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: #0f172a;
+            border: none;
+            font-weight: 600;
+            padding: 0.85rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: background 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-clear {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.85rem 1rem;
+        }
+
+        .btn-clear:hover {
+            background-color: var(--surface-hover);
+            color: var(--text);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-style: italic;
+            padding-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div>
+                <h1>AI Financial Analyst</h1>
+                <p class="subtitle">AI-Native Financial Review &bull; Step 8 Tool-Calling Conversational Controller</p>
+            </div>
+            <div class="nav-links">
+                <a href="/pnl/">P&amp;L Statement</a>
+                <a href="/variances/">Variances</a>
+                <a href="/needs-review/">Needs Review</a>
+                <a href="/chat/" class="active">AI Analyst</a>
+                <a href="/transactions/">Transactions</a>
+                <a href="/upload/">Upload CSV</a>
+            </div>
+        </header>
+
+        <!-- Preset Test Questions -->
+        <div class="preset-container">
+            <div class="preset-title">Test Prompts (Click to ask):</div>
+            <div class="preset-chips">
+                <button type="button" class="preset-chip" onclick="askPreset('What was our revenue in March?')">
+                    What was our revenue in March?
+                </button>
+                <button type="button" class="preset-chip" onclick="askPreset('How much did we spend on payroll each month?')">
+                    How much did we spend on payroll each month?
+                </button>
+                <button type="button" class="preset-chip" onclick="askPreset('Why did operating profit change between February and March?')">
+                    Why did operating profit change between February and March?
+                </button>
+                <button type="button" class="preset-chip" onclick="askPreset('What drove the increase in food costs?')">
+                    What drove the increase in food costs?
+                </button>
+                <button type="button" class="preset-chip" onclick="askPreset('Which transactions need my attention?')">
+                    Which transactions need my attention?
+                </button>
+                <button type="button" class="preset-chip" onclick="askPreset('Show me the transactions behind that variance.')">
+                    Show me the transactions behind that variance.
+                </button>
+                <button type="button" class="preset-chip" onclick="askPreset('What changed most over the review period?')">
+                    What changed most over the review period?
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Stream -->
+        <div class="chat-window" id="chat-stream">
+            <!-- Initial Welcome Message -->
+            <div class="message-row assistant">
+                <div class="avatar ai-av">AI</div>
+                <div class="message-content">
+                    <p>Hello! I am your AI Financial Analyst for NYC Restaurant Co.</p>
+                    <p>I answer questions using <strong>strictly deterministic tool calls</strong> directly against our financial database (P&amp;L, material variances, review queue, and individual transactions), always citing transaction IDs as evidence.</p>
+                    <p>You can type a question below or click any of the test prompt chips above.</p>
+                </div>
+            </div>
+
+            <!-- Session History Items -->
+            {% for msg in history %}
+            <div class="message-row {{ msg.role }}">
+                <div class="avatar {% if msg.role == 'user' %}user-av{% else %}ai-av{% endif %}">
+                    {% if msg.role == 'user' %}You{% else %}AI{% endif %}
+                </div>
+                <div class="message-content" id="msg-content-{{ forloop.counter }}">
+                    {{ msg.content }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="typing-indicator" id="typing-indicator">
+            <span>AI Analyst is running financial tools...</span>
+        </div>
+
+        <!-- Input Bar -->
+        <form class="chat-input-area" id="chat-form" onsubmit="handleSend(event)">
+            <input type="text" id="chat-input" class="input-box" placeholder="Ask about revenue, expenses, variances, or transactions..." autocomplete="off" required>
+            <button type="submit" class="btn" id="send-btn">Send &rarr;</button>
+            <button type="button" class="btn btn-clear" onclick="clearHistory()" title="Clear session history">Clear</button>
+        </form>
+    </div>
+
+    <script>
+        const chatStream = document.getElementById('chat-stream');
+        const chatInput = document.getElementById('chat-input');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const sendBtn = document.getElementById('send-btn');
+
+        function scrollToBottom() {
+            chatStream.scrollTop = chatStream.scrollHeight;
+        }
+
+        // Render any existing markdown in history
+        document.querySelectorAll('.message-row.assistant .message-content').forEach(el => {
+            if (typeof marked !== 'undefined') {
+                el.innerHTML = marked.parse(el.innerHTML.trim());
+            }
+        });
+        scrollToBottom();
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function askPreset(promptText) {
+            chatInput.value = promptText;
+            document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+        }
+
+        async function handleSend(e) {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Append user bubble
+            appendMessage('user', message);
+            chatInput.value = '';
+            chatInput.focus();
+
+            // Show typing indicator
+            typingIndicator.style.display = 'flex';
+            sendBtn.disabled = true;
+            scrollToBottom();
+
+            try {
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') || ''
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                typingIndicator.style.display = 'none';
+                sendBtn.disabled = false;
+
+                if (data.success) {
+                    appendMessage('assistant', data.response, data.tools_called);
+                } else {
+                    appendMessage('assistant', 'Error: ' + (data.error || 'Failed to process request'));
+                }
+            } catch (err) {
+                typingIndicator.style.display = 'none';
+                sendBtn.disabled = false;
+                appendMessage('assistant', 'Network error: ' + err.message);
+            }
+
+            scrollToBottom();
+        }
+
+        function appendMessage(role, text, toolsCalled = []) {
+            const row = document.createElement('div');
+            row.className = `message-row ${role}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `avatar ${role === 'user' ? 'user-av' : 'ai-av'}`;
+            avatar.textContent = role === 'user' ? 'You' : 'AI';
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            if (role === 'assistant' && toolsCalled && toolsCalled.length > 0) {
+                const toolContainer = document.createElement('div');
+                toolsCalled.forEach(t => {
+                    const pill = document.createElement('span');
+                    pill.className = 'tool-pill';
+                    const argsStr = Object.entries(t.arguments || {}).map(([k, v]) => `${k}="${v}"`).join(', ');
+                    pill.textContent = `🔧 Tool: ${t.tool}(${argsStr})`;
+                    toolContainer.appendChild(pill);
+                });
+                content.appendChild(toolContainer);
+            }
+
+            const bodyDiv = document.createElement('div');
+            if (role === 'assistant' && typeof marked !== 'undefined') {
+                bodyDiv.innerHTML = marked.parse(text);
+            } else {
+                bodyDiv.textContent = text;
+            }
+            content.appendChild(bodyDiv);
+
+            row.appendChild(avatar);
+            row.appendChild(content);
+            chatStream.appendChild(row);
+            scrollToBottom();
+        }
+
+        async function clearHistory() {
+            if (!confirm('Clear conversational chat history?')) return;
+            try {
+                await fetch('/api/chat/clear/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') || '' }
+                });
+                window.location.reload();
+            } catch (err) {
+                alert('Could not clear history: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

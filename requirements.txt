@@ -1,0 +1,9 @@
+Django==6.1.1
+djangorestframework==3.18.1
+python-dotenv==1.2.3
+google-genai==2.25.0
+requests==2.34.2
+whitenoise==6.12.0
+gunicorn==26.2.0
+dj-database-url==3.1.2
+psycopg2-binary==2.9.13

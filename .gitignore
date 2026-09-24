@@ -1,0 +1,32 @@
+# Environment & Secrets
+.env
+*.env
+!.env.example
+
+# Python virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+db.sqlite3
+db.sqlite3-journal
+
+# Static files collected for production
+staticfiles/
+
+# IDE & Editor folders
+.vscode/
+.idea/
+*.swp
+*~
+
+# Operating system files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Variances | AI Financial Review</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --primary: #38bdf8;
+            --primary-hover: #0ea5e9;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --card-bg: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 1.5rem 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 0.5rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.15s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        /* Thresholds bar */
+        .threshold-banner {
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .threshold-pill {
+            display: inline-block;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Variance Card */
+        .variance-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .line-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .month-badge {
+            font-size: 0.85rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            margin-left: 0.5rem;
+        }
+
+        .delta-pill {
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 0.4rem 0.85rem;
+            border-radius: 8px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .delta-pill.increased {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .delta-pill.decreased {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .metrics-comparison {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.35rem;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            background: rgba(15, 23, 42, 0.5);
+            border-left: 4px solid var(--warning);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .explanation-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--warning);
+            margin-bottom: 0.4rem;
+        }
+
+        .explanation-text {
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+
+        /* Grid for Drivers & Transactions */
+        .drilldown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .section-box {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .section-heading {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.4rem;
+        }
+
+        .item-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            font-size: 0.88rem;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background-color: var(--primary);
+            color: #0f172a;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: background 0.15s ease;
+        }
+
+        .btn-link:hover {
+            background-color: var(--primary-hover);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div>
+                <h1>Material Variance Analysis</h1>
+                <p class="subtitle">AI-Native Financial Review &bull; Step 6 Deterministic Variance Drivers &amp; LLM Insights</p>
+            </div>
+            <div class="nav-links">
+                <a href="/pnl/">P&amp;L Statement</a>
+                <a href="/variances/" class="active">Variances</a>
+                <a href="/needs-review/">Needs Review</a>
+                <a href="/chat/">AI Analyst</a>
+                <a href="/transactions/">Transactions</a>
+                <a href="/upload/">Upload CSV</a>
+            </div>
+        </header>
+
+        <!-- Thresholds criteria banner -->
+        <div class="threshold-banner">
+            <div>
+                <strong>Materiality Rule (Configurable in Code):</strong>
+                A variance is flagged if change is &gt;
+                <span class="threshold-pill">{{ percent_threshold }}%</span>
+                AND &gt;
+                <span class="threshold-pill">${{ absolute_threshold }}</span>
+            </div>
+            <div style="font-size: 0.9rem; color: var(--text-muted);">
+                Found <strong>{{ variances|length }}</strong> material month-over-month shifts
+            </div>
+        </div>
+
+        <!-- Variances List -->
+        {% for v in variances %}
+        <div class="variance-card">
+            <div class="card-top">
+                <div>
+                    <span class="line-title">{{ v.line_label }}</span>
+                    <span class="month-badge">{{ v.from_month_label }} &rarr; {{ v.to_month_label }}</span>
+                    <div class="metrics-comparison">
+                        Prior: <strong>${{ v.prior_amount|floatformat:2 }}</strong> &bull;
+                        Current: <strong>${{ v.current_amount|floatformat:2 }}</strong>
+                    </div>
+                </div>
+                <div class="delta-pill {{ v.direction }}">
+                    {% if v.dollar_change >= 0 %}+{% endif %}${{ v.dollar_change|floatformat:2 }}
+                    ({{ v.pct_change }}%)
+                </div>
+            </div>
+
+            <!-- Plain-English LLM Narrative (No invented numbers) -->
+            <div class="explanation-box">
+                <div class="explanation-title">Plain-English Variance Narrative (LLM)</div>
+                <div class="explanation-text">{{ v.explanation }}</div>
+            </div>
+
+            <div class="drilldown-grid">
+                <!-- Driver Categories -->
+                <div class="section-box">
+                    <div class="section-heading">Key Category Drivers (Deterministic Code)</div>
+                    <ul class="item-list">
+                        {% for cat in v.driver_categories %}
+                        <li class="item-row">
+                            <span style="font-weight: 500;">{{ cat.category }}</span>
+                            <span style="font-variant-numeric: tabular-nums; font-weight: 600; color: {% if cat.dollar_change > 0 %}var(--success){% elif cat.dollar_change < 0 %}var(--danger){% else %}var(--text-muted){% endif %};">
+                                {% if cat.dollar_change > 0 %}+{% endif %}${{ cat.dollar_change|floatformat:2 }}
+                            </span>
+                        </li>
+                        {% empty %}
+                        <li style="color: var(--text-muted);">No category breakdown available</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Top 5 Transactions -->
+                <div class="section-box">
+                    <div class="section-heading">Top Transactions Driving Period</div>
+                    <ul class="item-list">
+                        {% for tx in v.top_transactions %}
+                        <li class="item-row">
+                            <div>
+                                <div style="font-weight: 500;">{{ tx.description }}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ tx.date }} &bull; {{ tx.category }}</div>
+                            </div>
+                            <span style="font-variant-numeric: tabular-nums; font-weight: 600;">
+                                ${{ tx.amount|floatformat:2 }}
+                            </span>
+                        </li>
+                        {% empty %}
+                        <li style="color: var(--text-muted);">No individual transactions recorded</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Drill-down link to transactions -->
+            <div style="text-align: right; margin-top: 0.5rem;">
+                <a href="{{ v.view_transactions_url }}" class="btn-link">
+                    View Backing Transactions &rarr;
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="variance-card" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+            No material variances detected between consecutive months based on current thresholds.
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

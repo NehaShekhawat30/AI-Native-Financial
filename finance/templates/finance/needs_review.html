@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Needs Review | AI Financial Review</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --primary: #38bdf8;
+            --primary-hover: #0ea5e9;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #a855f7;
+            --info: #38bdf8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 1.5rem 2rem;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 0.5rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.15s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        /* Metric Summary Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+
+        .metric-val {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        /* Filter Toolbar */
+        .filters-bar {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            transition: all 0.15s ease;
+        }
+
+        .filter-chip:hover {
+            color: var(--text);
+            border-color: var(--primary);
+        }
+
+        .filter-chip.active {
+            background-color: rgba(56, 189, 248, 0.15);
+            color: var(--primary);
+            border-color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Review Items List */
+        .card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-item {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+            display: grid;
+            grid-template-columns: 140px 1fr 140px auto;
+            gap: 1.5rem;
+            align-items: center;
+            transition: background 0.15s ease;
+        }
+
+        .review-item:hover {
+            background-color: rgba(51, 65, 85, 0.2);
+        }
+
+        .review-item.resolved {
+            opacity: 0.6;
+            background-color: rgba(15, 23, 42, 0.3);
+        }
+
+        .tx-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .tx-desc {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .reason-badges {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.4rem;
+        }
+
+        .badge-reason {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            letter-spacing: 0.02em;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-info {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--info);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .reason-detail {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .tx-amount {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .amount-pos { color: var(--success); }
+        .amount-neg { color: #f1f5f9; }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: #0f172a;
+            border: none;
+            font-weight: 600;
+            padding: 0.55rem 0.95rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--surface-hover);
+            color: var(--text);
+            border-color: var(--text-muted);
+        }
+
+        .btn-success {
+            background-color: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .btn-success:hover {
+            background-color: var(--success);
+            color: #0f172a;
+        }
+
+        .resolved-badge {
+            color: var(--success);
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.75rem;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 6px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 520px;
+            padding: 1.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .tx-info-box {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.85rem;
+            font-size: 0.85rem;
+        }
+
+        .tx-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.35rem;
+        }
+
+        .form-control {
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.6rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: var(--surface);
+            border: 1px solid var(--success);
+            color: var(--text);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1100;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div>
+                <h1>Needs Review Queue</h1>
+                <p class="subtitle">AI-Native Financial Review &bull; Step 7 Deterministic Rule-Based Anomaly Detection</p>
+            </div>
+            <div class="nav-links">
+                <a href="/pnl/">P&amp;L Statement</a>
+                <a href="/variances/">Variances</a>
+                <a href="/needs-review/" class="active">Needs Review ({{ pending_count }})</a>
+                <a href="/transactions/">Transactions</a>
+                <a href="/upload/">Upload CSV</a>
+            </div>
+        </header>
+
+        <!-- Metric Summary Cards -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-val" style="color: {% if pending_count > 0 %}var(--warning){% else %}var(--success){% endif %};">
+                    {{ pending_count }}
+                </div>
+                <div class="metric-label">Pending Action Required</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val" style="color: var(--success);">
+                    {{ resolved_count }}
+                </div>
+                <div class="metric-label">Resolved Items</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-val">
+                    {{ total_count }}
+                </div>
+                <div class="metric-label">Total Flagged Anomalies</div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filters-bar">
+            <!-- Reason Type Chips -->
+            <div class="filter-group">
+                <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">
+                    Reason:
+                </span>
+                <a href="?status={{ status_filter }}" class="filter-chip {% if not reason_filter %}active{% endif %}">
+                    All
+                </a>
+                <a href="?reason=low_confidence&status={{ status_filter }}" class="filter-chip {% if reason_filter == 'low_confidence' %}active{% endif %}">
+                    Low Confidence
+                </a>
+                <a href="?reason=unusual_amount&status={{ status_filter }}" class="filter-chip {% if reason_filter == 'unusual_amount' %}active{% endif %}">
+                    Unusual Size
+                </a>
+                <a href="?reason=non_pnl&status={{ status_filter }}" class="filter-chip {% if reason_filter == 'non_pnl' %}active{% endif %}">
+                    Non-P&amp;L Treatment
+                </a>
+                <a href="?reason=possible_duplicate&status={{ status_filter }}" class="filter-chip {% if reason_filter == 'possible_duplicate' %}active{% endif %}">
+                    Duplicates
+                </a>
+                <a href="?reason=odd_data&status={{ status_filter }}" class="filter-chip {% if reason_filter == 'odd_data' %}active{% endif %}">
+                    Odd Data
+                </a>
+            </div>
+
+            <!-- Status View Switch -->
+            <div class="filter-group">
+                <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">
+                    View:
+                </span>
+                <a href="?status=pending{% if reason_filter %}&reason={{ reason_filter }}{% endif %}" class="filter-chip {% if status_filter == 'pending' %}active{% endif %}">
+                    Pending Only
+                </a>
+                <a href="?status=all{% if reason_filter %}&reason={{ reason_filter }}{% endif %}" class="filter-chip {% if status_filter == 'all' %}active{% endif %}">
+                    Show All
+                </a>
+            </div>
+        </div>
+
+        <!-- Anomaly Items List -->
+        <div class="card">
+            {% for item in items %}
+            <div class="review-item {% if item.is_resolved %}resolved{% endif %}" id="review-row-{{ item.transaction.id }}">
+                <!-- Date & Source -->
+                <div>
+                    <div style="font-weight: 600;">{{ item.transaction.date|date:"Y-m-d" }}</div>
+                    <div class="tx-meta">Row #{{ item.transaction.source_row|default:"-" }}</div>
+                    <div class="tx-meta">ID #{{ item.transaction.id }}</div>
+                </div>
+
+                <!-- Description, Badges & Reason Details -->
+                <div>
+                    <div class="tx-desc">{{ item.transaction.description }}</div>
+                    <div class="reason-badges">
+                        {% for r in item.reasons %}
+                        <span class="badge-reason badge-{{ r.severity }}">{{ r.badge }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="reason-detail">
+                        {% for r in item.reasons %}
+                        <div>&bull; {{ r.detail }}</div>
+                        {% endfor %}
+                    </div>
+                    <div style="margin-top: 0.35rem; font-size: 0.82rem; color: var(--text-muted);">
+                        Current Category: <strong id="cat-label-{{ item.transaction.id }}" style="color: var(--text);">{{ item.transaction.category.name|default:"Uncategorized" }}</strong>
+                        &bull; Status: <span id="status-label-{{ item.transaction.id }}">{{ item.transaction.get_status_display }}</span>
+                    </div>
+                </div>
+
+                <!-- Amount -->
+                <div class="tx-amount">
+                    {% if item.transaction.amount >= 0 %}
+                    <span class="amount-pos">+${{ item.transaction.amount|floatformat:2 }}</span>
+                    {% else %}
+                    <span class="amount-neg">-${{ item.transaction.amount|stringformat:".2f"|slice:"1:" }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons" id="actions-{{ item.transaction.id }}">
+                    {% if item.is_resolved %}
+                    <span class="resolved-badge">&check; Resolved</span>
+                    <button type="button" class="btn btn-outline" onclick="openReviewModal('{{ item.transaction.id }}', '{{ item.transaction.description|escapejs }}', '{{ item.transaction.category_id|default:'' }}', '{{ item.transaction.amount }}', '{{ item.transaction.date|date:'Y-m-d' }}')">
+                        Change
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn btn-outline" onclick="openReviewModal('{{ item.transaction.id }}', '{{ item.transaction.description|escapejs }}', '{{ item.transaction.category_id|default:'' }}', '{{ item.transaction.amount }}', '{{ item.transaction.date|date:'Y-m-d' }}')">
+                        Change Category
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="resolveItem('{{ item.transaction.id }}')">
+                        &check; Mark Resolved
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--success);">&check;</div>
+                <h3 style="color: var(--text); margin-bottom: 0.25rem;">Review Queue Clear!</h3>
+                <p>No transactions match the selected review criteria.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Category Correction & Resolve Modal -->
+    <div class="modal-overlay" id="correction-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Review &amp; Reclassify Transaction</h3>
+                <button type="button" class="modal-close" onclick="closeCorrectionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="tx-info-box">
+                    <div class="tx-info-row">
+                        <span style="color: var(--text-muted);">Date:</span>
+                        <span id="modal-date" style="font-weight: 500;"></span>
+                    </div>
+                    <div class="tx-info-row">
+                        <span style="color: var(--text-muted);">Description:</span>
+                        <span id="modal-desc" style="font-weight: 500;"></span>
+                    </div>
+                    <div class="tx-info-row">
+                        <span style="color: var(--text-muted);">Amount:</span>
+                        <span id="modal-amount" style="font-weight: 600;"></span>
+                    </div>
+                </div>
+
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                    <label for="modal-category-select" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">
+                        Assign Category
+                    </label>
+                    <select id="modal-category-select" class="form-control">
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" data-type="{{ cat.type }}">{{ cat.name }} ({{ cat.get_type_display }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeCorrectionModal()">Cancel</button>
+                    <button type="button" class="btn" id="save-correction-btn" onclick="saveCategoryAndResolve()">Save &amp; Resolve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Toast -->
+    <div class="toast" id="toast-notification"></div>
+
+    <script>
+        let currentTxId = null;
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3500);
+        }
+
+        function openReviewModal(txId, description, categoryId, amount, date) {
+            currentTxId = txId;
+            document.getElementById('modal-date').textContent = date;
+            document.getElementById('modal-desc').textContent = description;
+            document.getElementById('modal-amount').textContent = '$' + amount;
+            
+            const catSelect = document.getElementById('modal-category-select');
+            if (categoryId) {
+                catSelect.value = categoryId;
+            }
+            document.getElementById('correction-modal').style.display = 'flex';
+        }
+
+        function closeCorrectionModal() {
+            document.getElementById('correction-modal').style.display = 'none';
+            currentTxId = null;
+        }
+
+        async function resolveItem(txId) {
+            try {
+                const response = await fetch(`/transactions/${txId}/resolve/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken') || ''
+                    }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Transaction marked as resolved!');
+                    const actionsEl = document.getElementById(`actions-${txId}`);
+                    const statusLabel = document.getElementById(`status-label-${txId}`);
+                    const row = document.getElementById(`review-row-${txId}`);
+
+                    if (actionsEl) {
+                        actionsEl.innerHTML = `<span class="resolved-badge">&check; Resolved</span>`;
+                    }
+                    if (statusLabel) {
+                        statusLabel.textContent = 'Resolved';
+                    }
+                    if (row) {
+                        row.classList.add('resolved');
+                    }
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to resolve transaction'));
+                }
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            }
+        }
+
+        async function saveCategoryAndResolve() {
+            if (!currentTxId) return;
+
+            const categoryId = document.getElementById('modal-category-select').value;
+            const saveBtn = document.getElementById('save-correction-btn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                // First update the category
+                const response = await fetch(`/transactions/${currentTxId}/correct/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') || ''
+                    },
+                    body: JSON.stringify({
+                        category_id: parseInt(categoryId),
+                        apply_to_all_matching: false
+                    })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    // Then mark resolved
+                    await fetch(`/transactions/${currentTxId}/resolve/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken') || ''
+                        }
+                    });
+
+                    showToast(`Updated to ${result.new_category_name} and marked resolved!`);
+                    
+                    const catLabel = document.getElementById(`cat-label-${currentTxId}`);
+                    const actionsEl = document.getElementById(`actions-${currentTxId}`);
+                    const statusLabel = document.getElementById(`status-label-${currentTxId}`);
+                    const row = document.getElementById(`review-row-${currentTxId}`);
+
+                    if (catLabel) catLabel.textContent = result.new_category_name;
+                    if (statusLabel) statusLabel.textContent = 'Resolved';
+                    if (actionsEl) actionsEl.innerHTML = `<span class="resolved-badge">&check; Resolved</span>`;
+                    if (row) row.classList.add('resolved');
+
+                    closeCorrectionModal();
+                } else {
+                    alert('Error: ' + (result.error || 'Could not update category'));
+                }
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save & Resolve';
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeCorrectionModal();
+        });
+    </script>
+</body>
+</html>
